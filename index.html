@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generating Report...</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* === PROFESSIONAL STYLING === */
+        :root { --bg: #f3f4f6; --paper: #ffffff; --text: #111827; --accent: #0f172a; }
+        body { background: var(--bg); font-family: 'Inter', sans-serif; display: flex; justify-content: center; padding: 20px; }
+        
+        #status {
+            position: fixed; top: 0; left: 0; right: 0; background: #000; color: #fff; 
+            padding: 10px; text-align: center; font-size: 14px; z-index: 999;
+        }
+
+        .manifest-paper {
+            background: var(--paper); width: 210mm; min-height: 297mm; padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15); color: var(--text);
+        }
+
+        .header { border-bottom: 4px solid var(--accent); padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; }
+        .brand h1 { font-size: 28px; font-weight: 900; margin: 0; text-transform: uppercase; }
+        .brand span { font-size: 11px; color: #6b7280; letter-spacing: 1px; text-transform: uppercase; display: block; }
+        .meta { text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6b7280; }
+
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; border: 1px solid #e5e7eb; padding: 15px; background: #f9fafb; }
+        .item label { display: block; font-size: 9px; text-transform: uppercase; color: #6b7280; font-weight: 700; }
+        .item div { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--accent); }
+
+        .section { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-left: 4px solid var(--accent); padding-left: 10px; margin: 30px 0 15px 0; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+        th { text-align: left; border-bottom: 2px solid #000; padding: 8px 0; }
+        td { border-bottom: 1px solid #e5e7eb; padding: 10px 0; }
+        .pass { color: #059669; font-weight: 700; }
+
+        .log { background: #111; color: #4ade80; padding: 15px; font-family: 'JetBrains Mono', monospace; font-size: 10px; border-radius: 4px; line-height: 1.6; }
+
+        .footer { margin-top: 50px; border-top: 1px solid #000; padding-top: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .barcode { height: 30px; width: 150px; background: repeating-linear-gradient(90deg, #000, #000 2px, #fff 2px, #fff 4px); margin-top: 5px; }
+        .sign { font-family: 'Inter', sans-serif; font-weight: 900; font-size: 16px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <div id="status">Generating PDF... Please wait.</div>
+
+    <div class="manifest-paper" id="invoice">
+        <div class="header">
+            <div class="brand">
+                <h1>Advora Tech</h1>
+                <span>System Release Manifest</span>
+            </div>
+            <div class="meta">
+                <div>DOC ID: <span id="docId">...</span></div>
+                <div>DATE: <span id="printDate">...</span></div>
+                <div>AUTH: ADMIN_ROOT</div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="item"><label>Release Ver</label><div id="verNum">...</div></div>
+            <div class="item"><label>Artifact ID</label><div id="buildId">...</div></div>
+            <div class="item"><label>Deployment Date</label><div id="deployDate">...</div></div>
+            <div class="item"><label>Status</label><div>SUCCESS</div></div>
+            <div class="item"><label>Environment</label><div>PROD-ARM64</div></div>
+            <div class="item"><label>Integrity</label><div>SHA-256 OK</div></div>
+        </div>
+
+        <div class="section">/// EXECUTION LOG</div>
+        <table>
+            <tr><th>Phase</th><th>Hash</th><th>Status</th></tr>
+            <tr><td>Build Generation</td><td id="h1">...</td><td class="pass">[ OK ]</td></tr>
+            <tr><td>Asset Upload</td><td id="h2">...</td><td class="pass">[ OK ]</td></tr>
+            <tr><td>Config Overwrite</td><td id="h3">...</td><td class="pass">[ OK ]</td></tr>
+            <tr><td>Redirect Sim</td><td id="h4">...</td><td class="pass">[ OK ]</td></tr>
+        </table>
+
+        <div class="section">/// TERMINAL OUTPUT</div>
+        <div class="log">
+            > Initializing Release Sequence... OK<br>
+            > Connecting to Cloud Config... AUTHENTICATED<br>
+            > Verifying Min_Supported_Version pointer... MATCH<br>
+            > Simulation: Splash -> Block Redirect... SUCCESS<br>
+            > Finalizing Session... DONE.
+        </div>
+
+        <div class="footer">
+            <div>
+                <div style="font-size:9px;">DIGITAL ID</div>
+                <div class="barcode"></div>
+                <div style="font-size:8px; margin-top:4px;" id="guid">...</div>
+            </div>
+            <div style="text-align:right;">
+                <div class="sign">Lunor Tech</div>
+                <div style="font-size:9px;">VERIFIED AUTHORITY</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function rHex(l) { let c='0123456789ABCDEF',r=''; for(let i=0;i<l;i++)r+=c[Math.floor(Math.random()*16)]; return r; }
+
+        window.onload = function() {
+            const p = new URLSearchParams(window.location.search);
+            const v = p.get('v') || 'v0.0.0';
+            const d = p.get('d') || new Date().toLocaleDateString();
+
+            document.getElementById('verNum').innerText = v;
+            document.getElementById('deployDate').innerText = d;
+            document.getElementById('printDate').innerText = new Date().toLocaleDateString();
+            document.getElementById('docId').innerText = "DOC-" + rHex(6);
+            document.getElementById('buildId').innerText = "B-2026-" + rHex(4);
+            document.getElementById('guid').innerText = crypto.randomUUID();
+            
+            for(let i=1;i<=4;i++) document.getElementById('h'+i).innerText = "0x" + rHex(8);
+
+            // Wait 1.5s for fonts/styles to load, then print
+            setTimeout(() => {
+                const el = document.getElementById('invoice');
+                const opt = {
+                    margin: 0, filename: `Release_Manifest_${v}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(el).save().then(() => {
+                    document.getElementById('status').innerText = "✅ Download Started!";
+                    document.getElementById('status').style.background = "green";
+                });
+            }, 1500);
+        };
+    </script>
+</body>
+</html>
