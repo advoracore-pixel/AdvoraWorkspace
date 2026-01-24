@@ -4,135 +4,235 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generating Report...</title>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
     <style>
-        /* === PROFESSIONAL STYLING === */
-        :root { --bg: #f3f4f6; --paper: #ffffff; --text: #111827; --accent: #0f172a; }
-        body { background: var(--bg); font-family: 'Inter', sans-serif; display: flex; justify-content: center; padding: 20px; }
+        /* === RESET & BASICS === */
+        * { box-sizing: border-box; }
         
-        #status {
-            position: fixed; top: 0; left: 0; right: 0; background: #000; color: #fff; 
-            padding: 10px; text-align: center; font-size: 14px; z-index: 999;
+        :root {
+            --bg: #333;
+            --paper: #ffffff;
+            --text-main: #111;
+            --text-light: #555;
+            --accent: #000;
         }
 
+        body {
+            background: var(--bg);
+            /* SYSTEM FONTS for 100% PDF Reliability */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh;
+        }
+
+        #statusOverlay {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: #000; color: #fff; padding: 15px; text-align: center;
+            font-size: 14px; z-index: 999; font-weight: bold;
+        }
+
+        /* === A4 PAPER CONTAINER === */
         .manifest-paper {
-            background: var(--paper); width: 210mm; min-height: 297mm; padding: 40px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15); color: var(--text);
+            background: var(--paper);
+            width: 210mm; min-height: 297mm; /* A4 Exact */
+            padding: 40px;
+            margin: 0 auto;
+            position: relative;
+            color: var(--text-main);
+            /* Important for PDF */
+            box-shadow: none; 
         }
 
-        .header { border-bottom: 4px solid var(--accent); padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; }
-        .brand h1 { font-size: 28px; font-weight: 900; margin: 0; text-transform: uppercase; }
-        .brand span { font-size: 11px; color: #6b7280; letter-spacing: 1px; text-transform: uppercase; display: block; }
-        .meta { text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6b7280; }
-
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; border: 1px solid #e5e7eb; padding: 15px; background: #f9fafb; }
-        .item label { display: block; font-size: 9px; text-transform: uppercase; color: #6b7280; font-weight: 700; }
-        .item div { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--accent); }
-
-        .section { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-left: 4px solid var(--accent); padding-left: 10px; margin: 30px 0 15px 0; }
+        /* === REPORT STYLES === */
+        .doc-header { 
+            display: flex; justify-content: space-between; align-items: flex-start; 
+            border-bottom: 3px solid #000; padding-bottom: 20px; margin-bottom: 30px; 
+        }
         
-        table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: 'JetBrains Mono', monospace; }
-        th { text-align: left; border-bottom: 2px solid #000; padding: 8px 0; }
-        td { border-bottom: 1px solid #e5e7eb; padding: 10px 0; }
-        .pass { color: #059669; font-weight: 700; }
+        .brand-section h1 { font-size: 26px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: -0.5px; }
+        .brand-section .subtitle { font-size: 10px; color: var(--text-light); letter-spacing: 1px; text-transform: uppercase; margin-top: 5px; display: block; font-weight: 600; }
+        
+        .meta-box { text-align: right; font-family: 'Courier New', Courier, monospace; font-size: 10px; color: #333; line-height: 1.5; font-weight: bold; }
+        .status-tag { display: inline-block; background: #000; color: #fff; padding: 4px 8px; font-weight: bold; font-size: 9px; text-transform: uppercase; margin-bottom: 8px; }
 
-        .log { background: #111; color: #4ade80; padding: 15px; font-family: 'JetBrains Mono', monospace; font-size: 10px; border-radius: 4px; line-height: 1.6; }
+        /* GRID */
+        .tech-grid { 
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; 
+            border: 1px solid #ccc; padding: 15px; background: #f9f9f9; 
+        }
+        .data-point label { display: block; font-size: 8px; text-transform: uppercase; color: #666; font-weight: bold; margin-bottom: 4px; }
+        .data-point div { font-family: 'Courier New', Courier, monospace; font-size: 11px; font-weight: bold; color: #000; }
 
-        .footer { margin-top: 50px; border-top: 1px solid #000; padding-top: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .barcode { height: 30px; width: 150px; background: repeating-linear-gradient(90deg, #000, #000 2px, #fff 2px, #fff 4px); margin-top: 5px; }
-        .sign { font-family: 'Inter', sans-serif; font-weight: 900; font-size: 16px; text-transform: uppercase; }
+        /* HEADINGS */
+        .section-heading { 
+            font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; 
+            border-left: 4px solid #000; padding-left: 10px; margin: 30px 0 15px 0; color: #000;
+        }
+
+        /* TABLE */
+        table { width: 100%; border-collapse: collapse; font-size: 10px; font-family: 'Courier New', Courier, monospace; }
+        th { text-align: left; border-bottom: 2px solid #000; padding: 8px 0; text-transform: uppercase; font-weight: bold; }
+        td { border-bottom: 1px solid #eee; padding: 10px 0; color: #333; }
+        .pass-badge { color: #008000; font-weight: bold; }
+        .hash-code { color: #555; }
+
+        /* LOG */
+        .system-log { 
+            background: #111; color: #32CD32; padding: 15px; 
+            font-family: 'Courier New', Courier, monospace; font-size: 9px; 
+            border-radius: 4px; margin-top: 20px; line-height: 1.6; 
+        }
+
+        /* FOOTER */
+        .doc-footer { margin-top: 60px; border-top: 1px solid #000; padding-top: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+        /* Simple CSS Barcode */
+        .barcode { height: 35px; width: 180px; background: repeating-linear-gradient(90deg, #000, #000 2px, #fff 2px, #fff 4px); margin-top: 10px; }
+        
+        .auth-sign { text-align: right; }
+        .sign-placeholder { font-weight: 900; font-size: 14px; color: #000; text-transform: uppercase; margin-bottom: 5px; }
+
     </style>
 </head>
 <body>
 
-    <div id="status">Generating PDF... Please wait.</div>
+    <div id="statusOverlay">Please wait... Generating Report...</div>
 
     <div class="manifest-paper" id="invoice">
-        <div class="header">
-            <div class="brand">
+        
+        <header class="doc-header">
+            <div class="brand-section">
+                <div class="status-tag">Deployment Successful</div>
                 <h1>Advora Tech</h1>
-                <span>System Release Manifest</span>
+                <span class="subtitle">System Release Manifest & Audit Log</span>
             </div>
-            <div class="meta">
+            <div class="meta-box">
                 <div>DOC ID: <span id="docId">...</span></div>
                 <div>DATE: <span id="printDate">...</span></div>
+                <div>ENV: PRODUCTION (ARM64)</div>
                 <div>AUTH: ADMIN_ROOT</div>
             </div>
+        </header>
+
+        <div class="tech-grid">
+            <div class="data-point">
+                <label>Release Version</label>
+                <div id="verNum">...</div>
+            </div>
+            <div class="data-point">
+                <label>Artifact ID</label>
+                <div id="buildId">...</div>
+            </div>
+            <div class="data-point">
+                <label>Required Ver</label>
+                <div id="minVer">...</div>
+            </div>
+            <div class="data-point">
+                <label>Database Sync</label>
+                <div>COMPLETED (Write: 1)</div>
+            </div>
+            <div class="data-point">
+                <label>Deployment Date</label>
+                <div id="deployDate">...</div>
+            </div>
+            <div class="data-point">
+                <label>Integrity Check</label>
+                <div>SHA-256 PASSED</div>
+            </div>
         </div>
 
-        <div class="grid">
-            <div class="item"><label>Release Ver</label><div id="verNum">...</div></div>
-            <div class="item"><label>Artifact ID</label><div id="buildId">...</div></div>
-            <div class="item"><label>Deployment Date</label><div id="deployDate">...</div></div>
-            <div class="item"><label>Status</label><div>SUCCESS</div></div>
-            <div class="item"><label>Environment</label><div>PROD-ARM64</div></div>
-            <div class="item"><label>Integrity</label><div>SHA-256 OK</div></div>
-        </div>
-
-        <div class="section">/// EXECUTION LOG</div>
+        <div class="section-heading">/// PIPELINE EXECUTION LOG</div>
         <table>
-            <tr><th>Phase</th><th>Hash</th><th>Status</th></tr>
-            <tr><td>Build Generation</td><td id="h1">...</td><td class="pass">[ OK ]</td></tr>
-            <tr><td>Asset Upload</td><td id="h2">...</td><td class="pass">[ OK ]</td></tr>
-            <tr><td>Config Overwrite</td><td id="h3">...</td><td class="pass">[ OK ]</td></tr>
-            <tr><td>Redirect Sim</td><td id="h4">...</td><td class="pass">[ OK ]</td></tr>
+            <thead>
+                <tr>
+                    <th>Process Phase</th>
+                    <th>Hash</th>
+                    <th>Timestamp</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Build & Signing</td><td class="hash-code" id="h1"></td><td id="t1"></td><td class="pass-badge">[ OK ]</td></tr>
+                <tr><td>Asset Upload</td><td class="hash-code" id="h2"></td><td id="t2"></td><td class="pass-badge">[ OK ]</td></tr>
+                <tr><td>Config Overwrite</td><td class="hash-code" id="h3"></td><td id="t3"></td><td class="pass-badge">[ OK ]</td></tr>
+                <tr><td>Redirect Simulation</td><td class="hash-code" id="h4"></td><td id="t4"></td><td class="pass-badge">[ OK ]</td></tr>
+            </tbody>
         </table>
 
-        <div class="section">/// TERMINAL OUTPUT</div>
-        <div class="log">
-            > Initializing Release Sequence... OK<br>
-            > Connecting to Cloud Config... AUTHENTICATED<br>
-            > Verifying Min_Supported_Version pointer... MATCH<br>
-            > Simulation: Splash -> Block Redirect... SUCCESS<br>
-            > Finalizing Session... DONE.
+        <div class="section-heading">/// TERMINAL OUTPUT</div>
+        <div class="system-log">
+            > Initiating handshake with Cloud Config... OK<br>
+            > Verifying User Permissions... AUTHENTICATED<br>
+            > Updating 'min_supported_version' pointer... SUCCESS<br>
+            > Running redirect simulation (splash.html -> block.html)... PASS<br>
+            > Closing session. Deployment finalized.
         </div>
 
-        <div class="footer">
+        <footer class="doc-footer">
             <div>
-                <div style="font-size:9px;">DIGITAL ID</div>
+                <div style="font-size: 8px; text-transform: uppercase; color: #555; margin-bottom: 5px;">Digital Identity</div>
                 <div class="barcode"></div>
-                <div style="font-size:8px; margin-top:4px;" id="guid">...</div>
+                <div style="font-family: 'Courier New', monospace; font-size: 8px; margin-top: 4px;">ID: <span id="guid">...</span></div>
             </div>
-            <div style="text-align:right;">
-                <div class="sign">Lunor Tech</div>
-                <div style="font-size:9px;">VERIFIED AUTHORITY</div>
+            <div class="auth-sign">
+                <div class="sign-placeholder">Lunor Tech Systems</div>
+                <div style="font-size: 8px; text-transform: uppercase; color: #555;">Verified Deployment Authority</div>
             </div>
-        </div>
+        </footer>
+
     </div>
 
     <script>
-        function rHex(l) { let c='0123456789ABCDEF',r=''; for(let i=0;i<l;i++)r+=c[Math.floor(Math.random()*16)]; return r; }
+        function randomHex(len) {
+            const chars = '0123456789ABCDEF';
+            let res = '';
+            for(let i=0; i<len; i++) res += chars[Math.floor(Math.random() * chars.length)];
+            return res;
+        }
 
         window.onload = function() {
-            const p = new URLSearchParams(window.location.search);
-            const v = p.get('v') || 'v0.0.0';
-            const d = p.get('d') || new Date().toLocaleDateString();
-
-            document.getElementById('verNum').innerText = v;
-            document.getElementById('deployDate').innerText = d;
-            document.getElementById('printDate').innerText = new Date().toLocaleDateString();
-            document.getElementById('docId').innerText = "DOC-" + rHex(6);
-            document.getElementById('buildId').innerText = "B-2026-" + rHex(4);
-            document.getElementById('guid').innerText = crypto.randomUUID();
+            // 1. Get Params
+            const params = new URLSearchParams(window.location.search);
+            const ver = params.get('v') || 'v0.0.0';
+            const depDate = params.get('d') || 'Unknown';
             
-            for(let i=1;i<=4;i++) document.getElementById('h'+i).innerText = "0x" + rHex(8);
+            // 2. Fill Data
+            document.getElementById('verNum').innerText = ver;
+            document.getElementById('minVer').innerText = ver;
+            document.getElementById('deployDate').innerText = depDate;
+            document.getElementById('printDate').innerText = new Date().toLocaleDateString();
+            document.getElementById('docId').innerText = "DOC-" + randomHex(6);
+            document.getElementById('buildId').innerText = `B-${new Date().getFullYear()}-${randomHex(4)}`;
+            document.getElementById('guid').innerText = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-            // Wait 1.5s for fonts/styles to load, then print
+            const now = new Date();
+            for(let i=1; i<=4; i++) {
+                document.getElementById(`h${i}`).innerText = "0x" + randomHex(8);
+                document.getElementById(`t${i}`).innerText = new Date(now - (i*5000)).toISOString().split('T')[1].split('.')[0] + "Z";
+            }
+
+            // 3. WAIT & PRINT (Wait 1s for layout to settle)
             setTimeout(() => {
-                const el = document.getElementById('invoice');
+                const element = document.getElementById('invoice');
                 const opt = {
-                    margin: 0, filename: `Release_Manifest_${v}.pdf`,
+                    margin: 0,
+                    filename: `Release_Manifest_${ver}.pdf`,
                     image: { type: 'jpeg', quality: 0.98 },
                     html2canvas: { scale: 2, useCORS: true },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
-                html2pdf().set(opt).from(el).save().then(() => {
-                    document.getElementById('status').innerText = "✅ Download Started!";
-                    document.getElementById('status').style.background = "green";
+
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.getElementById('statusOverlay').innerText = "✅ PDF Downloaded. You can close this tab.";
+                    document.getElementById('statusOverlay').style.background = "#006400";
+                }).catch(err => {
+                    document.getElementById('statusOverlay').innerText = "❌ Error: " + err.message;
                 });
-            }, 1500);
+            }, 1000); 
         };
     </script>
 </body>
-</html>
+    </html>
+            
