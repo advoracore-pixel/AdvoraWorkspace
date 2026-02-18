@@ -56,6 +56,14 @@
   "css": ".adv-video-banner { margin: 10px 15px 0 15px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); } .adv-video-banner video { width: 100%; height: auto; display: block; object-fit: cover; }",
   "js": ""
   },
+    {
+    "id": "video_mute_toggle",
+    "name": "🔇/🔊 Video with Mute Toggle",
+    "icon": "fa-volume-xmark",
+    "html": "<div class=\"adv-video-container\">\n    <video id=\"advVideoPlayer\" autoplay loop muted playsinline>\n        <source src=\"{{VIDEO_URL}}\" type=\"video/mp4\">\n    </video>\n    <button class=\"mute-btn\" onclick=\"toggleAudio()\">\n        <i id=\"muteIcon\" class=\"fa-solid fa-volume-xmark\"></i>\n    </button>\n</div>",
+    "css": ".adv-video-container { position: relative; margin: 10px 15px 0 15px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); background: #000; } video { width: 100%; height: auto; display: block; } .mute-btn { position: absolute; bottom: 10px; right: 10px; background: rgba(0, 0, 0, 0.6); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; width: 35px; height: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); transition: all 0.2s; } .mute-btn:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.2); }",
+    "js": "window.toggleAudio = function() {\n    const video = document.getElementById('advVideoPlayer');\n    const icon = document.getElementById('muteIcon');\n    \n    if (video.muted) {\n        video.muted = false;\n        icon.classList.remove('fa-volume-xmark');\n        icon.classList.add('fa-volume-high');\n    } else {\n        video.muted = true;\n        icon.classList.remove('fa-volume-high');\n        icon.classList.add('fa-volume-xmark');\n    }\n}"
+    },
   {
     "id": "maintenance",
     "name": "🛠️ Maintenance Mode",
