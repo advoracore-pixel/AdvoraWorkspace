@@ -49,6 +49,14 @@
     "js": ""
   },
   {
+  "id": "video_simple",
+  "name": "▶️ Simple Video (No Click)",
+  "icon": "fa-film",
+  "html": "<div class=\"adv-video-banner\">\n  <video autoplay loop muted playsinline>\n    <source src=\"{{VIDEO_URL}}\" type=\"video/mp4\">\n    Your browser does not support the video tag.\n  </video>\n</div>",
+  "css": ".adv-video-banner { margin: 10px 15px 0 15px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); } .adv-video-banner video { width: 100%; height: auto; display: block; object-fit: cover; }",
+  "js": ""
+  },
+  {
     "id": "maintenance",
     "name": "🛠️ Maintenance Mode",
     "icon": "fa-screwdriver-wrench",
